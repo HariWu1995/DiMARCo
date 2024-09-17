@@ -1,11 +1,15 @@
 # Domain Specific Language for the Abstraction and Reasoning Corpus (ARC-DSL)
 
-The DSL was created with the aim of being expressive enough to allow programs solving arbitrary ARC tasks, and generic, i.e. consisting of only few primitives, each useful for many tasks (see [`dsl.py`](dsl.py)). As a proof of concept, solver programs for the training tasks were written (see [`solvers.py`](solvers.py)). See [`arc_dsl_writeup.pdf`](arc_dsl_writeup.pdf) for a more detailed description of the work.
+The DSL was created with the aim of being expressive enough to allow programs solving arbitrary ARC tasks, and generic, i.e. consisting of only few primitives, each useful for many tasks (see [`dsl.py`](src/dsl/dsl.py)). 
+
+As a proof of concept, solver programs for the training tasks were written (see [`solvers.py`](src/dsl/solvers.py)). 
+
+See [`arc_dsl_writeup.pdf`](papers/arc_dsl_writeup.pdf) for a more detailed description of the work.
 
 
 ## Example solver program for task 00d62c1b written in the DSL
 
-![Task 00d62c1b](00d62c1b.png)
+![Task 00d62c1b](assets/arc-dsl/00d62c1b.png)
 
 ```python
 def solve_00d62c1b(I):
@@ -30,7 +34,7 @@ The function `solve_00d62c1b` takes an input grid `I` and returns the correct ou
 
 ## Another solver example: 5521c0d9
 
-![Task 5521c0d9](5521c0d9.png)
+![Task 5521c0d9](assets/arc-dsl/5521c0d9.png)
 
 ```python
 def solve_5521c0d9(I):

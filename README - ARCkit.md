@@ -2,7 +2,7 @@
 
 [![PyPI version](https://badge.fury.io/py/arckit.svg)](https://badge.fury.io/py/arckit)
 
-![Example visualisation of ARC grids](./images/allgrids10.svg)
+![Example visualisation of ARC grids](./assets/arckit/allgrids10.svg)
 
 Python and command-line tools for easily working with the **Abstraction &amp; Reasoning Corpus** (ARC-AGI, formerly ARC) dataset. 
 
@@ -103,7 +103,7 @@ The `arckit.vis` submodule provides useful functions for creating vector graphic
 >>> vis.output_drawing(grid, "images/grid_example.png") # svg/pdf/png
 ```
 
-![Example of arckit visualisation](./images/grid_example.png)
+![Example of arckit visualisation](./assets/arckit/grid_example.png)
 
 When drawing tasks, arckit will intelligently resize all of the grids such that the total size of the illustration does not exceed the chosen width/height.
 
@@ -112,13 +112,13 @@ When drawing tasks, arckit will intelligently resize all of the grids such that 
 >>> vis.output_drawing(grid, "images/arcshow_example.png") # svg/pdf/png
 ```
 
-![Example of arckit output](./images/arcsave_example.png)
+![Example of arckit output](./assets/arckit/arcsave_example.png)
 
 ## 💻 Command-line tools
 
 `arcshow` draws a visualisation of a specific task straight to the console:
 
-![Example of arcshow command output (with colours)](./images/arcshow_example.png)
+![Example of arcshow command output (with colours)](./assets/arckit/arcshow_example.png)
 
 `arcsave` saves a visualisation of a specific task to a file (pdf/svg/png), and is useful for inspecting tasks or producing high quality graphics showing specific tasks (e.g. for a paper). Tasks can be specified by their hex ID or by dataset, e.g. `train0`.
 
@@ -137,7 +137,7 @@ optional arguments:
   --output OUTPUT  The output file to save to. Must end in .svg/.pdf/.png. By default, pdf is used.
   ```
 
-![Example of arcsave command output](./images/arcsave_example.png)
+![Example of arcsave command output](./assets/arckit/arcsave_example.png)
 
 ## 💡 Contributions
 

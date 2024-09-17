@@ -10,12 +10,12 @@ https://arxiv.org/abs/2402.03507
 Most of this repo follows the primary DreamCoder repo: https://github.com/ellisk42/ec.
 
 Some helpful ARC-specific files:
-- `ec/arcbin/arc_mikel2.py`: The main entry-point for DreamCoder on ARC
-- `ec/dreamcoder/domains/arc/arcPrimitivesIC2.py`: PeARL definitions (domain-specific language).
-- `ec/dreamcoder/domains/arc/main.py`: Recognition model
-- `ec/arcbin/test_primitives_mikel2.py`: Very rough test harness to check that primitives aren't broken
-- `arckit/`: Vendored early version of the [arckit](https://github.com/mxbi/arckit) library.
-- `solved_tasks.md` shows a list of tasks solved by DreamCoder with corresponding programs.
+- `src/arckit/`: Vendored early version of the [arckit](https://github.com/mxbi/arckit) library.
+- `src/ec/arcbin/arc_mikel2.py`: The main entry-point for DreamCoder on ARC
+- `src/ec/arcbin/test_primitives_mikel2.py`: Very rough test harness to check that primitives aren't broken
+- `src/ec/dreamcoder/domains/arc/arcPrimitivesIC2.py`: PeARL definitions (domain-specific language).
+- `src/ec/dreamcoder/domains/arc/main.py`: Recognition model
+- `RESULTS - DreamCoder.md` shows a list of tasks solved by DreamCoder with corresponding programs.
 
 ## Building the DreamCoder environment
 

@@ -33,7 +33,7 @@ When looking at a task, a test-taker has access to inputs & outputs of the demon
 
 ## Usage of the testing interface
 
-The testing interface is located at `apps/testing_interface.html`. Open it in a web browser (Chrome recommended). It will prompt you to select a task JSON file.
+The testing interface is located at `src/viz/gui.html`. Open it in a web browser (Chrome recommended). It will prompt you to select a task JSON file.
 
 After loading a task, you will enter the test space, which looks like this:
 
