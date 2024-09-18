@@ -4,7 +4,6 @@ import numpy as np
 
 from .const import COLORS as cmap
 
-
 # Issue: 
 #   https://stackoverflow.com/questions/46265677/get-cairosvg-working-in-windows
 # Installing uniconvertor-2.0rc4-win64_headless.msi 
@@ -277,3 +276,23 @@ def output_drawing(d: drawsvg.Drawing, filename: str, context=None):
 
     else:
         raise ValueError(f'Unknown file extension for {filename}')
+
+
+def test_color():
+
+    from matplotlib import pyplot as plt
+    from matplotlib import colors
+
+    from .const import COLORS 
+    
+    C = len(COLORS)
+
+    cmap = colors.ListedColormap(COLORS)
+    norm = colors.Normalize(vmin=0, vmax=C)
+
+    plt.figure(figsize=(5, 1), dpi=150)
+    plt.imshow([list(range(C))], cmap=cmap, norm=norm)
+    plt.xticks(list(range(C)))
+    plt.yticks([])
+    plt.show()
+

@@ -3,6 +3,7 @@ import csv
 import json
 import numpy as np
 
+from typing import Tuple, Union
 from pathlib import Path
 
 from rich import print
@@ -119,7 +120,10 @@ class Task:
             grids += [inp, out]
         for inp, out in self.test:
             grids += [inp, out]
-        return {"name": self.id, "grids": grids}
+        return {
+            "name": self.id, 
+            "grids": grids,
+        }
 
     def scoreA(self, output):
         output = np.array(output).astype(int)
@@ -278,22 +282,28 @@ def get_data_json(version: str = 'latest', dataset_dir = None):
     return json.load(open(dataset_fullpath))
 
 
-def load_data(version: str = 'latest') -> (TaskSet, TaskSet):
+def load_data(data: dict = None, version: str = 'latest', eval: bool = True):
     """
     Load the ARC dataset from disk. 
     Optionally, specify a version of the dataset to load.
     """
-    data = get_data_json(version)
+    if data is None:
+        data = get_data_json(version)
         
     train_tasks = []
-    eval_tasks = []
     for id, task in data['train'].items():
         train_tasks.append(Task(id, task['train'], task['test'], 'train', version=version))
 
+    train_tasks = TaskSet(train_tasks)
+    if not eval:
+        return train_tasks
+
+    eval_tasks = []
     for id, task in data['eval'].items():
         eval_tasks.append(Task(id, task['train'], task['test'], 'eval', version=version))
 
-    return TaskSet(train_tasks), TaskSet(eval_tasks)
+    eval_tasks = TaskSet(eval_tasks)
+    return train_tasks, eval_tasks
 
 
 def load_single(id: str, version='latest') -> Task:
@@ -331,10 +341,12 @@ def load_single(id: str, version='latest') -> Task:
 
 if __name__ == "__main__":
 
-    train_tasks, eval_tasks = load_data()
-    print(train_tasks)
+    train_tasks, eval_tasks = load_data(eval=True, version='latest')
+    
     print(eval_tasks)
+    print(train_tasks)
     print(train_tasks["007bbfb7"])
+
     for i in range(10):
         train_tasks[i].show()
 
