@@ -1,7 +1,9 @@
-import json
-import numpy as np
 import os
 import csv
+import json
+import numpy as np
+
+from pathlib import Path
 
 from rich import print
 from rich.panel import Panel
@@ -13,7 +15,7 @@ def idx2chr(idx):
     return chr(idx + 65)
 
 
-def fmt_grid(grid, colour=True, spaces=True):
+def format_grid(grid, colour=True, spaces=True):
     grid_str = []
 
     if not colour:
@@ -29,9 +31,15 @@ def fmt_grid(grid, colour=True, spaces=True):
 
     else:
         if spaces:
-            cmap = dict({i: (str(i) + ' ', f"color({i})") for i in range(10)}, **{str(i): (str(i) + ' ', f"color({i})") for i in range(10)})
+            cmap = dict(
+                       {i : (str(i) + ' ', f"color({i})") for i in range(10)}, 
+                 **{str(i): (str(i) + ' ', f"color({i})") for i in range(10)}
+            )
         else:
-            cmap = dict({i: (str(i), f"color({i})") for i in range(10)}, **{str(i): (str(i), f"color({i})") for i in range(10)})
+            cmap = dict(
+                       {i : (str(i), f"color({i})") for i in range(10)}, 
+                 **{str(i): (str(i), f"color({i})") for i in range(10)}
+            )
 
         for row in grid:
             grid_str += [cmap[digit] for digit in row]
@@ -75,7 +83,7 @@ class Task:
 
         data = []
         for i, (input, output) in enumerate(self.train):
-            data += [fmt_grid(input), fmt_grid(output)]
+            data += [format_grid(input), format_grid(output)]
             ix, iy = input.shape
             ox, oy = output.shape
             table.add_column(f"{idx2chr(i)}-in {ix}x{iy}", justify="center", no_wrap=True)
@@ -87,9 +95,9 @@ class Task:
             table.add_column(f"T{idx2chr(i)}-in", justify="center", header_style="bold", no_wrap=True)
             if answer:
                 table.add_column(f"T{idx2chr(i)}-out", justify="center", header_style="bold", no_wrap=True)
-                data += [fmt_grid(input), fmt_grid(output)]
+                data += [format_grid(input), format_grid(output)]
             else:
-                data += [fmt_grid(input)]
+                data += [format_grid(input)]
 
         table.add_row(*data)
         print(table)
@@ -119,27 +127,32 @@ class Task:
             return False
         return (output == self.test[0][1]).all()
 
-    def gpt_prompt(self, i_test, mode="chatgpt", include_completion=False, rot90=False, transpose=False, spaces=True):
+    def prompt_template(self, i_test, mode="chatgpt", include_completion=False, 
+                                    rot90=False, transpose=False, spaces=True):
         if mode == "chatgpt":
             prompt = "We are playing a game which involves transforming an input grid of digits into an output grid of digits. In general, digits form objects in 2D and the task is to perform some spatial transformation of these objects to go from the input grid to the output grid. All the information about the transformation is contained within the input pairs themselves, and your answer will only be correct if the output grid is exactly correct, so this is what I expect from you. I will begin by giving you several examples of input-output pairs. You will then be given a new input grid, and you must provide the corresponding output grid.\n"
+        
         elif mode == "gpt3":
             # prompt = "We are playing a game which involves transforming an input grid of digits into an output grid of digits. Every below pair of grids contains the same transformation. In general, digits form objects in 2D and the task is to perform some spatial transformation of these objects to go from the input tile to the output tile. One such example of tiles is below.\n"
             prompt = "We are playing a game which involves transformaing a 2D input grid of digits into an output grid of digits. Every below pair of grids contains the same transformation (e.g. rotation, symmetry, manipulation of objects). Each Input grid is followed by an Output grid which applies the same transformation as previous Input/Output pairs. One such example is below.\n"
+        
         else:
             raise ValueError(f"Unknown mode: {mode}")
 
         i = 1
         for input, output in self.train:
+
             if rot90:
                 input = np.rot90(input)
                 output = np.rot90(output)
+
             if transpose:
                 input = np.transpose(input)
                 output = np.transpose(output)
 
             prompt += f"""
-                Input {i}: \n{fmt_grid(input, colour=False, spaces=spaces)}
-                Output {i}: \n{fmt_grid(output, colour=False, spaces=spaces)}
+                Input {i}: \n{format_grid(input, colour=False, spaces=spaces)}
+                Output {i}: \n{format_grid(output, colour=False, spaces=spaces)}
                 """.replace('                ', '')
             i += 1
 
@@ -150,7 +163,8 @@ class Task:
             test_grid = np.transpose(test_grid)
 
         prompt += f"Input {i}:\n"
-        prompt += f"{fmt_grid(test_grid, colour=False, spaces=spaces)}"
+        prompt += f"{format_grid(test_grid, colour=False, spaces=spaces)}"
+
         if mode == "gpt3":
             prompt += f"\nOutput {i}:"
         else:
@@ -161,7 +175,7 @@ class Task:
                 output = np.rot90(self.test[i_test][1])
             if transpose:
                 output = np.transpose(self.test[i_test][1])
-            prompt += f"\n{fmt_grid(self.test[i_test][1], colour=False, spaces=spaces)}"
+            prompt += f"\n{format_grid(self.test[i_test][1], colour=False, spaces=spaces)}"
         return prompt
 
 
@@ -244,23 +258,30 @@ class TaskSet:
             return total_score
 
 
-def get_data_json(version):
+def get_data_json(version: str = 'latest', dataset_dir = None):
+    if dataset_dir is None:
+        dataset_dir = Path(__file__).resolve().parents[2]
+
     if version in ['latest', 'arcagi', 'aa922be']:
-        return json.load(open(f"{os.path.dirname(__file__)}/data/arcagi_aa922be.json"))
+        dataset_path = "data/arcagi_aa922be.json"
     
     elif version in ['kaggle', 'kaggle2024']:
-        return json.load(open(f"{os.path.dirname(__file__)}/data/kaggle2024.json"))
+        dataset_path = "data/kaggle2024.json"
     
     elif version in ['arc', 'kaggle2019']:
-        return json.load(open(f"{os.path.dirname(__file__)}/data/arc1.json"))
+        dataset_path = "data/arc1.json"
     
     else:
         raise ValueError(f"Unknown ARC dataset version: {version}")
 
+    dataset_fullpath = str(dataset_dir / dataset_path)
+    return json.load(open(dataset_fullpath))
 
-def load_data(version='latest') -> (TaskSet, TaskSet):
+
+def load_data(version: str = 'latest') -> (TaskSet, TaskSet):
     """
-    Load the ARC dataset from disk. Optionally, specify a specific version of the dataset to load.
+    Load the ARC dataset from disk. 
+    Optionally, specify a version of the dataset to load.
     """
     data = get_data_json(version)
         
@@ -317,4 +338,4 @@ if __name__ == "__main__":
     for i in range(10):
         train_tasks[i].show()
 
-    print(train_tasks["08ed6ac7"].gpt_prompt("gpt3"))
+    print(train_tasks["08ed6ac7"].prompt_template(mode="gpt3"))

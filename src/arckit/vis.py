@@ -1,21 +1,18 @@
-import drawsvg
-import numpy as np
+import os
 import io
+import numpy as np
+
+from .const import COLORS as cmap
 
 
-cmap = [
-    '#252525', # black
-    '#0074D9', # blue
-    '#FF4136', # red
-    '#37D449', #2ECC40', # green
-    '#FFDC00', # yellow
-    '#E6E6E6', # grey
-    '#F012BE', # pink
-    '#FF871E', # orange
-    '#54D2EB', #7FDBFF', # light blue
-    '#8D1D2C', #870C25', # brown
-    '#FFFFFF',
-]
+# Issue: 
+#   https://stackoverflow.com/questions/46265677/get-cairosvg-working-in-windows
+# Installing uniconvertor-2.0rc4-win64_headless.msi 
+#       from https://sk1project.net/uc2/download/
+if os.name == 'nt':
+    os.environ['path'] += r';C:\Program Files\UniConvertor-2.0rc5\dlls'
+import drawsvg
+
 
 def draw_grid(grid, xmax=10, ymax=10, padding=.5, extra_bottom_padding=0.5, group=False, add_size=True, label='', bordercol='#111111ff'):
     """
