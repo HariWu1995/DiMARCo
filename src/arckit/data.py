@@ -80,8 +80,8 @@ class Task:
         return f"<Task-{self.dataset} {self.id} | {len(self.train)} train | {len(self.test)} test>"
 
     def show(self, answer=False):
-        table = Table(title=repr(self), show_lines=True)
 
+        table = Table(title=repr(self), show_lines=True)
         data = []
         for i, (input, output) in enumerate(self.train):
             data += [format_grid(input), format_grid(output)]
@@ -101,7 +101,7 @@ class Task:
                 data += [format_grid(input)]
 
         table.add_row(*data)
-        print(table)
+        # print(table)
         return table
 
     def to_dict(self):
