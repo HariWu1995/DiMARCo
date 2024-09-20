@@ -307,6 +307,21 @@ def load_data(data: dict = None, version: str = 'latest', eval: bool = True):
     return train_tasks, eval_tasks
 
 
+def format_data(train_challenges, train_solutions, 
+                 eval_challenges,  eval_solutions, ):
+
+    all_challenges = dict(train=train_challenges, eval=eval_challenges)
+    all_solutions = dict(train=train_solutions, eval=eval_solutions)
+
+    for s in ['train','eval']:
+        for t in all_challenges[s].keys():
+            T = all_challenges[s][t]['test']
+            for c in range(len(T)):
+                all_challenges[s][t]['test'][c]['output'] = all_solutions[s][t][c]
+
+    return all_challenges
+
+
 def load_single(id: str, version='latest') -> Task:
     """
     Load a single task from disk. IDs are of the form 'train0', 'eval14', '007bbfb7', etc.
