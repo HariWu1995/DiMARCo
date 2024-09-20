@@ -4,6 +4,8 @@ Sample Augmentation
 import torch
 import numpy as np
 
+from tensorflow.keras.utils import to_categorical
+
 
 def flip_vertical(grid):
     return torch.flip(grid, dims=[0])  # Flip along rows
@@ -33,5 +35,53 @@ def rotate_180(grid):
 
 def rotate_270(grid):
     return torch.rot90(grid, k=3, dims=[0, 1])
+
+
+def encode_1hot(grid, num_classes: int = 10, 
+                ignore_background: bool = False):
+    """
+    1-hot encoding for 2D-data (2D -> 3D)
+
+    Example:
+
+        Input:
+                        0 0 1 1 0 0
+                        0 0 1 1 0 0
+                        0 0 0 0 0 0
+                        0 2 2 2 2 0
+                        0 2 2 2 2 0
+
+        Output:
+            + C = 0:    1 1 0 0 1 1
+                        1 1 0 0 1 1 
+                        1 1 1 1 1 1
+                        1 0 0 0 0 1
+                        1 0 0 0 0 1
+
+            + C = 1:    0 0 1 1 0 0
+                        0 0 1 1 0 0
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0
+
+            + C = 2:    0 0 0 0 0 0
+                        0 0 0 0 0 0
+                        0 0 0 0 0 0
+                        0 1 1 1 1 0
+                        0 1 1 1 1 0
+            
+            + others: all-0 arrays
+    """
+    if num_classes is None:
+        num_classes = 10
+    if num_classes < 0:
+        num_classes = 10
+
+    grid_3d = to_categorical(grid, num_classes=num_classes)
+    
+    if ignore_background:
+        grid_3d = grid_3d[..., 1:]
+
+    return grid_3d
 
 
