@@ -222,9 +222,11 @@ def _calculate_optical_flow(data_instance, method="Farneback", direction="forwar
     #     # of_instance = cv2.optflow.createOptFlow_PCAFlow()
     #     of_function = 
 
-    # elif method == "SimpleFlow":
-    #     # of_instance = cv2.optflow.createOptFlow_SimpleFlow()
-    #     of_function = cv2.optflow.calcOpticalFlowSF
+    elif method == "SimpleFlow":
+        # of_instance = cv2.optflow.createOptFlow_SimpleFlow()
+        of_function = cv2.optflow.calcOpticalFlowSF
+        of_params = dict(layers=3, averaging_block_size=2, max_flow=2)
+        of_params = list(of_params.values())
 
     elif method == "SparseToDense":
         # of_instance = cv2.optflow.createOptFlow_SparseToDense()

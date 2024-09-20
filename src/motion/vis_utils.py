@@ -36,6 +36,8 @@ def visualize_dense_arrow(flow: np.ndarray, image: np.ndarray = None,
 
     if step is None:
         step = int(min(h, w) / 100)
+    if step < 1:
+        step = 1
 
     if image is None:
         canvas = np.zeros([h, w])
