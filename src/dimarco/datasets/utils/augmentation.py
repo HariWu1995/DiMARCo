@@ -4,7 +4,9 @@ Sample Augmentation
 import torch
 import numpy as np
 
-from tensorflow.keras.utils import to_categorical
+
+def self_identity(grid):
+    return grid
 
 
 def flip_vertical(grid):
@@ -77,6 +79,8 @@ def encode_1hot(grid, num_classes: int = 10,
     if num_classes < 0:
         num_classes = 10
 
+    from tensorflow.keras.utils import to_categorical
+    
     grid_3d = to_categorical(grid, num_classes=num_classes)
     
     if ignore_background:

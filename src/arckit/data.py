@@ -79,7 +79,7 @@ class Task:
     def __repr__(self):
         return f"<Task-{self.dataset} {self.id} | {len(self.train)} train | {len(self.test)} test>"
 
-    def show(self, answer=False):
+    def show(self, answer: bool = False):
 
         table = Table(title=repr(self), show_lines=True)
         data = []
@@ -107,8 +107,8 @@ class Task:
     def to_dict(self):
         return {
                "id": self.id,
-            "train": [{"input": input.tolist(), "output": output.tolist()} for input, output in self.train],
-             "test": [{"input": input.tolist(), "output": output.tolist()} for input, output in self.test]
+            "train": [{"input": inp.tolist(), "output": out.tolist()} for inp, out in self.train],
+             "test": [{"input": inp.tolist(), "output": out.tolist()} for inp, out in self.test]
         }
     
     def dreamcoder_format(self):
@@ -125,7 +125,7 @@ class Task:
             "grids": grids,
         }
 
-    def scoreA(self, output):
+    def score(self, output):
         output = np.array(output).astype(int)
         if output.shape != self.test[0][1].shape:
             return False
@@ -194,13 +194,16 @@ class TaskSet:
         if isinstance(item, slice):
             return TaskSet(self.tasks[item])
 
+        # Get by task_id
         get = self.task_dict.get(item)
-        if get is None:
-            try:
-                return self.tasks[item]
-            except (TypeError, IndexError):
-                raise KeyError(f"Task {item} not found")
-        return get
+        if get is not None:
+            return get
+
+        # Get by task_order_id
+        try:
+            return self.tasks[item]
+        except (TypeError, IndexError):
+            raise KeyError(f"Task {item} not found")
 
     def __len__(self):
         return len(self.tasks)
