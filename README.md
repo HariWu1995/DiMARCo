@@ -59,6 +59,7 @@ python -m src.main
     - [SEA-RAFT](https://github.com/princeton-vl/SEA-RAFT)
 
 - **Diffusion Model**
+    - [🤗 Course: Diffusion](https://huggingface.co/learn/diffusion-course)
     - [Denoising-Diffusion](https://github.com/lucidrains/denoising-diffusion-pytorch)
     - [Spatial-Correlation](https://github.com/ClementPinard/Pytorch-Correlation-extension)
     - [Dilated-Convolution-with-Learnable-Spacings](https://github.com/K-H-Ismail/Dilated-Convolution-with-Learnable-Spacings-PyTorch)

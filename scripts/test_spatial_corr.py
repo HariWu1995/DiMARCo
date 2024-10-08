@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from spatial_correlation_sampler import SpatialCorrelationSampler, spatial_correlation_sample
+from spatial_correlation_sampler import (
+    spatial_correlation_sample as sample_spatial_corr,
+    SpatialCorrelationSampler as SpatialCorrSampler, 
+)
 
 device = "cuda"
 dtype = torch.float32
@@ -22,11 +25,11 @@ def test_lib():
                     patch_size=1, dilation_patch=1)
 
     # function
-    out = spatial_correlation_sample(input1, input2, **conv_args)
+    out = sample_spatial_corr(input1, input2, **conv_args)
     print(out)
 
     # module
-    correlation_sampler = SpatialCorrelationSampler(**conv_args)
+    correlation_sampler = SpatialCorrSampler(**conv_args)
     out = correlation_sampler(input1, input2)
     print(out)
 
@@ -51,7 +54,7 @@ def test_arc():
                         padding=0, dilation=1, 
                     patch_size=1, dilation_patch=1)
 
-    corr = spatial_correlation_sample(sample_in, sample_out, **conv_args)
+    corr = sample_spatial_corr(sample_in, sample_out, **conv_args)
     
     _B, pH, pW, _H, _W = corr.size()
     corr = corr.view(B, pH * pW, H, W) / sample_in.size(1)

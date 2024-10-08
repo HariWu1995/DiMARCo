@@ -11,9 +11,7 @@ from accelerator import Accelerator
 
 from .optimizers import get_optimizer
 from .losses import get_loss_fn
-
-
-eps = 1e-8
+from .const import eps
 
 
 def cycle(dataset):
@@ -48,12 +46,6 @@ class ModelTrainer:
         precision_type: str = 'fp16',
         grad_accum_steps: int = 1,
         distributed_batches: bool = True,
-        
-        # Diffusion
-        n_diff_steps: int = 10, 
-        max_noise: float = 0.0169,
-        min_noise: float = math.sqrt(eps), 
-        objective: str = 'v-space', # v-space / noise
 
         # Others
         **kwargs
@@ -61,8 +53,8 @@ class ModelTrainer:
 
         self.grad_accum_steps = grad_accum_steps
         self.grad_max_norm = grad_max_norm
-        self.step = 0
         self.num_steps = num_epochs * len(dataset) if num_epochs > 0 else num_steps
+        self.step = 0
         
         ## Training
         self.model = model
@@ -83,12 +75,6 @@ class ModelTrainer:
         self.model = self.accelerator.prepare(self.model)
         self.dataset = self.accelerator.prepare(self.dataset)
         self.optimizer = self.accelerator.prepare(self.optimizer)
-
-        ## Diffusion
-        self.objective = objective
-        self.noise_range = (min_noise, max_noise)
-        self.n_diff_steps = n_diff_steps
-        self.beta_at_steps = torch.linspace(min_noise, max_noise, n_diff_steps)
 
         ## Resulting
         self.save_folder = Path(save_folder) if not isinstance(save_folder, Path) else Path

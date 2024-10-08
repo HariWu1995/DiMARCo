@@ -1,27 +1,46 @@
 """
 Diffusion-Model for ARCorpus
 DI    -   M     -   ARCO    
+
+Reference:
+    https://huggingface.co/learn/diffusion-course/en/unit1/3
 """
+import math
+
 import torch
-import torch.nn as nn
+from torch import nn
+
+from .layers import GridConv
+from ..const import eps
 
 
 class DiMARCo(nn.Module):
 
-    def __init__(self):
+    def __init__(
+        self, 
+        
+        # Diffusion
+        objective: str = 'v-space', # v-space / noise
+        diff_steps: int = 10, 
+        min_noise: float = math.sqrt(eps), 
+        max_noise: float = math.sqrt(
+                           math.sqrt(eps)),
+        
+    ):
+        super().__init__()
 
-        super(DiMARCo, self).__init__()
+        ## Diffusion
+        self.objective = objective
+        self.beta_at_steps = torch.linspace(min_noise, max_noise, diff_steps)
 
         # Flexible Feature-Extraction for different grid-size(s)
         self.grid_conv = nn.ModuleDict({
-            'grid_tiny'     : nn.Conv2d(1, 16, kernel_size=3, padding=1),
-            'grid_small'    : nn.Conv2d(1, 16, kernel_size=3, padding=1),
-            'grid_medium'   : nn.Conv2d(1, 16, kernel_size=3, padding=1),
-            'grid_large'    : nn.Conv2d(1, 16, kernel_size=3, padding=1),
-        })
-
-        self.grid_actv = nn.PReLU()     # learnable
-        
+                 'tiny': nn.Conv2d(1, 16, kernel_size=3, padding=1),
+                'small': nn.Conv2d(1, 16, kernel_size=3, padding=1),
+               'medium': nn.Conv2d(1, 16, kernel_size=3, padding=1),
+                'large': nn.Conv2d(1, 16, kernel_size=3, padding=1),
+            })
+       
         # Define the U-Net stages with reduced convolutions
         self.stage1 = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=3, padding=1),
@@ -56,6 +75,13 @@ class DiMARCo(nn.Module):
         self.decoder2 = nn.ConvTranspose2d(64, 32, kernel_size=3, padding=1)
         self.decoder3 = nn.ConvTranspose2d(32, 16, kernel_size=3, padding=1)
         self.decoder4 = nn.ConvTranspose2d(16, 1, kernel_size=3, padding=1)  # Output to 1 channel
+
+    def add_noise(self, x, t, beta):
+        """
+        Adds noise to input x based on the timestep t.
+        """
+        noise = torch.randn_like(x)
+        return torch.sqrt(1 - beta[t]) * x + torch.sqrt(beta[t]) * noise
     
     def forward(self, x):
         input_size = x.size(2)  # assuming square input, so width == height

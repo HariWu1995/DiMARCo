@@ -1,8 +1,7 @@
 import math
 import torch
 
-
-eps = 1e-11
+from ..const import eps
 
 
 def log(t):
