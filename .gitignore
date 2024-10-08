@@ -1,5 +1,6 @@
-# Archive
-archive
+# Local folders
+archive/
+# extensions/
 
 # Download objects
 *.crdownload

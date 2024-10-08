@@ -191,6 +191,8 @@ class TaskSet:
         self.task_dict = {task.id: task for task in tasks}
 
     def __getitem__(self, item):
+
+        # Get multi-tasks
         if isinstance(item, slice):
             return TaskSet(self.tasks[item])
 
@@ -199,7 +201,7 @@ class TaskSet:
         if get is not None:
             return get
 
-        # Get by task_order_id
+        # Get by order of task_id
         try:
             return self.tasks[item]
         except (TypeError, IndexError):
