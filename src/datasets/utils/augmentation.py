@@ -9,6 +9,12 @@ def self_identity(grid):
     return grid
 
 
+def scale_up(grid, h_scale: int = 2, v_scale: int = 2):
+    grid = torch.repeat_interleave(grid, repeats=h_scale, dim=0)
+    grid = torch.repeat_interleave(grid, repeats=v_scale, dim=1)
+    return grid
+
+
 def flip_vertical(grid):
     return torch.flip(grid, dims=[0])  # Flip along rows
 
