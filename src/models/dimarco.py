@@ -10,7 +10,7 @@ import math
 import torch
 from torch import nn
 
-from .layers import GridConv
+from .layers import GridConv2d
 from ..const import eps
 
 
@@ -18,6 +18,10 @@ class DiMARCo(nn.Module):
 
     def __init__(
         self, 
+
+        # U-Net
+        in_channels: int,
+        out_channels: int = -1,
         
         # Diffusion
         objective: str = 'v-space', # v-space / noise
@@ -27,18 +31,20 @@ class DiMARCo(nn.Module):
                            math.sqrt(eps)),
         
     ):
-        super().__init__()
-
         ## Diffusion
         self.objective = objective
         self.beta_at_steps = torch.linspace(min_noise, max_noise, diff_steps)
 
+        ## U-Net
+        si = in_channels
+        so = out_channels if out_channels > 0 else in_channels
+
         # Flexible Feature-Extraction for different grid-size(s)
         self.grid_conv = nn.ModuleDict({
-                 'tiny': nn.Conv2d(1, 16, kernel_size=3, padding=1),
-                'small': nn.Conv2d(1, 16, kernel_size=3, padding=1),
-               'medium': nn.Conv2d(1, 16, kernel_size=3, padding=1),
-                'large': nn.Conv2d(1, 16, kernel_size=3, padding=1),
+                 'tiny': GridConv2d(1, 16, kernel_size=3, padding=1),
+                'small': GridConv2d(1, 16, kernel_size=3, padding=1),
+               'medium': GridConv2d(1, 16, kernel_size=3, padding=1),
+                'large': GridConv2d(1, 16, kernel_size=3, padding=1),
             })
        
         # Define the U-Net stages with reduced convolutions
@@ -75,13 +81,6 @@ class DiMARCo(nn.Module):
         self.decoder2 = nn.ConvTranspose2d(64, 32, kernel_size=3, padding=1)
         self.decoder3 = nn.ConvTranspose2d(32, 16, kernel_size=3, padding=1)
         self.decoder4 = nn.ConvTranspose2d(16, 1, kernel_size=3, padding=1)  # Output to 1 channel
-
-    def add_noise(self, x, t, beta):
-        """
-        Adds noise to input x based on the timestep t.
-        """
-        noise = torch.randn_like(x)
-        return torch.sqrt(1 - beta[t]) * x + torch.sqrt(beta[t]) * noise
     
     def forward(self, x):
         input_size = x.size(2)  # assuming square input, so width == height
