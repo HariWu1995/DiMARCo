@@ -50,6 +50,7 @@ python -m src.main
 
 - **ARC Solvers**
     - [DreamCoder](https://github.com/mxbi/dreamcoder-arc)
+    - [ARC-RevEng](https://github.com/michaelhodel/re-arc)
     - [ARC-DSL](https://github.com/michaelhodel/arc-dsl)
     - [Graph-Abstractions](https://github.com/khalil-research/ARGA-AAAI23)
 
