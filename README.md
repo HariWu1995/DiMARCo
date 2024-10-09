@@ -62,5 +62,7 @@ python -m src.main
 - **Diffusion Model**
     - [🤗 Course: Diffusion](https://huggingface.co/learn/diffusion-course)
     - [Denoising-Diffusion](https://github.com/lucidrains/denoising-diffusion-pytorch)
+
+- **Spatial Feature & Correlation**
     - [Spatial-Correlation](https://github.com/ClementPinard/Pytorch-Correlation-extension)
     - [Dilated-Convolution-with-Learnable-Spacings](https://github.com/K-H-Ismail/Dilated-Convolution-with-Learnable-Spacings-PyTorch)
