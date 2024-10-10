@@ -13,7 +13,8 @@ class UNet(nn.Module):
 
     def __init__(self, in_channels: int =  1, 
                       out_channels: int = -1,
-                        num_stages: int =  2, **kwargs):
+                        num_stages: int =  2, 
+                      init_filters: int = 32, **kwargs):
         
         super().__init__()
 
@@ -22,7 +23,7 @@ class UNet(nn.Module):
         if out_channels <= 0:
             out_channels = in_channels
 
-        block_channels = [2**(5+i) for i in range(num_stages)]
+        block_channels = [init_filters * (2**i) for i in range(num_stages)]
         block_channels += [block_channels[-1]]
         block_channels = tuple(block_channels)
 

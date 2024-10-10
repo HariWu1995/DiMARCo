@@ -10,6 +10,7 @@ class mUNet(nn.Module):
 
     def __init__(self, in_channels: int =  1, 
                       out_channels: int = -1,
+                      init_filters: int = 32, 
                        kernel_size: int =  5,
                       padding_size: int =  2,
                      dilation_size: int =  1,
@@ -19,6 +20,7 @@ class mUNet(nn.Module):
         
         self.num_stages = num_stages
 
+        f = init_filters
         si = in_channels
         so = out_channels if out_channels > 0 else in_channels
         
@@ -36,16 +38,16 @@ class mUNet(nn.Module):
                                dilation = dilation_size, )
 
         self.featractors = nn.ModuleDict(dict(
-                    down = nn.ModuleList([nn.Conv2d(si, 2**5, **conv_kwargs)]),
-                      up = nn.ModuleList([nn.Conv2d(2**5, so, **conv_kwargs)]),
+                    down = nn.ModuleList([nn.Conv2d(si, f, **conv_kwargs)]),
+                      up = nn.ModuleList([nn.Conv2d(f, so, **conv_kwargs)]),
                 ))
 
-        for i in range(5, 5+num_stages-1):
-            self.featractors['down'].append(nn.Conv2d(2**i, 2**(i+1), **conv_kwargs))
-            self.featractors[ 'up' ].append(nn.Conv2d(2**(i+1), 2**i, **conv_kwargs))
+        for i in range(num_stages-1):
+            self.featractors['down'].append(nn.Conv2d(f*2**i, f*2**(i+1), **conv_kwargs))
+            self.featractors[ 'up' ].append(nn.Conv2d(f*2**(i+1), f*2**i, **conv_kwargs))
 
-        self.featractors['down'].append(nn.Conv2d(2**(i+1), 2**(i+1), **conv_kwargs))
-        self.featractors[ 'up' ].append(nn.Conv2d(2**(i+1), 2**(i+1), **conv_kwargs))
+        self.featractors['down'].append(nn.Conv2d(f*2**(i+1), f*2**(i+1), **conv_kwargs))
+        self.featractors[ 'up' ].append(nn.Conv2d(f*2**(i+1), f*2**(i+1), **conv_kwargs))
 
         self.featractors['up'] = self.featractors['up'][::-1]
 
