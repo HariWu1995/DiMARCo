@@ -17,15 +17,20 @@ class CatUNet(nn.Module):
     def __init__(self, in_channels: int =  1, 
                       out_channels: int = -1,
                         num_stages: int =  2, 
-                       num_classes: int = 10, **kwargs):
+                       num_classes: int = 10, 
+                  background_class: int = None, **kwargs):
         
         super().__init__()
 
         self.num_stages = num_stages
-        self.num_classes = num_classes
+        self.num_classes = num_classes + (1 if isinstance(background_class, int) else 0)
+        self.background_class = background_class
         
         embedding_size = kwargs.get('embedding_size', math.ceil(math.log2(num_classes)))
-        self.embedder = nn.Embedding(self.num_classes, embedding_size)
+        padding_class = 0 if background_class is not None else None
+
+        self.embedder = nn.Embedding(self.num_classes, embedding_size, padding_idx=padding_class)
+        # print(self.embedder.weight)
 
         if out_channels <= 0:
             out_channels = in_channels
@@ -47,7 +52,7 @@ class CatUNet(nn.Module):
                          up_block_types =   up_block_layers,
                     )
 
-    def forward(self, x, c, t: int = 1):
+    def forward(self, x, c = None, t: int = 1):
 
         N = self.num_stages
         gcd = 2 ** N
@@ -56,7 +61,20 @@ class CatUNet(nn.Module):
         assert (H % gcd == 0) \
            and (W % gcd == 0), f"input_size ({H}, {W}) must be divisible by {gcd}"
 
-        # Concat
+        bg = self.background_class if self.background_class else 0
+
+        # In case x is categorical value
+        if c is None:
+            c = x
+            x = torch.where(x > bg, 1., 0)
+
+        # Assume that `background_class` is the minimum among all classes
+        c = c - bg
+        c = self.embedder(c)
+        c = torch.swapaxes(c, 1, 4).squeeze(dim=-1)
+            
+        # Concat -> (B, 1 + num_classes, H, W)
+        x = torch.cat([x, c], dim=1)
 
         y = self.backbone(x, t, return_dict=False)[0]
         return y
@@ -64,12 +82,12 @@ class CatUNet(nn.Module):
 
 if __name__ == "__main__":
 
-    model = CatUNet()
+    model = CatUNet(num_classes=10, background_class=-1)
     # print(model)
     print(sum([p.numel() for p in model.parameters()]))
 
     # W, H must be divisible by 2 ** (num_stages)
-    x = torch.rand(10, 1, 28, 28)
+    x = torch.randint(low=-1, high=10, size=(10, 1, 28, 28))
     print(x.shape)
 
     y = model(x)
