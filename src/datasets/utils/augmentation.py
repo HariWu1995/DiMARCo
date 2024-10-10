@@ -10,6 +10,12 @@ def self_identity(grid):
 
 
 def scale_up(grid, h_scale: int = 2, v_scale: int = 2):
+
+    if isinstance(grid, np.ndarray):
+        grid = np.repeat(grid, repeats=h_scale, axis=0)
+        grid = np.repeat(grid, repeats=v_scale, axis=1)
+        return grid
+
     grid = torch.repeat_interleave(grid, repeats=h_scale, dim=0)
     grid = torch.repeat_interleave(grid, repeats=v_scale, dim=1)
     return grid

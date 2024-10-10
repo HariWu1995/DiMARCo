@@ -14,8 +14,9 @@ from .losses import get_loss_fn
 from .const import eps
 
 
-def cycle(dataset):
+def cycle(dataset, shuffle: bool = True):
     while True:
+        dataset.shuffle()
         for data in dataset:
             yield data
 
@@ -138,7 +139,7 @@ class ModelTrainer:
     def train(self):
 
         device = self.device
-        dataset = cycle(self.dataset)
+        dataset = cycle(self.dataset, shuffle=True)
         is_main_proc = self.accelerator.is_main_process
 
         with tqdm(initial = self.step, 
