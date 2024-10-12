@@ -30,9 +30,20 @@ This code was tested with:
 * CUDA 12.1
 
 Setup environment:
-
 ```shell
-pip install -q -r requirements.txt
+pip install -r requirements.txt
+```
+
+Install PyTorch depending on **CUDA version**:
+```shell
+pip install torch==2.4.0 torchvision==0.19.0 --index-url https://download.pytorch.org/whl/cu121
+```
+
+Install special libraries:
+```shell
+pip install pipwin
+pipwin install cairocffi
+!pipwin install cairosvg
 ```
 
 #### Download **Checkpoints**
