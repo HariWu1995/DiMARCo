@@ -44,6 +44,7 @@ class iARCDatasetNaive(Dataset):
         self.grid_square = kwargs.get('grid_square', False)
         self.num_classes = kwargs.get('num_classes', 10)
         self.padding_mode = kwargs.get('padding_mode', 'center')
+        self.padding_value = kwargs.get('padding_value', -1)
         self.normalize_size = kwargs.get('normalize_size', False)
 
     def __len__(self):
@@ -51,6 +52,11 @@ class iARCDatasetNaive(Dataset):
 
     def __getitem__(self, idx):
 
+        if idx >= len(self):
+            print(f'[Warning] index {idx} should be lower than {len(self)}. '
+                  f'It will be reduced to {idx % len(self)}')
+            idx = idx % len(self)
+            
         task = self.task_set[idx]
 
         # un-Parsing
@@ -73,30 +79,30 @@ class iARCDatasetNaive(Dataset):
         if isinstance(self.grid_size, (list, tuple)):
             grid_size = self.grid_size
         else:
-            grids_size = (grid_max_H, grid_max_W)
+            grid_size = (grid_max_H, grid_max_W)
             if self.grid_square:
-                grids_size = tuple([max(*grids_size)] * 2)
+                grid_size = tuple([max(*grid_size)] * 2)
 
         # Padding
         grids_pad = []
         for grid in grids_raw:
 
-            grid_upscale = max(*grids_size) // np.max(grid.shape)
+            grid_upscale = max(*grid_size) // np.max(grid.shape)
             if (grid_upscale > 2) and self.normalize_size:
                 grid = scale_up(grid, h_scale=grid_upscale, 
                                       v_scale=grid_upscale)
-            if grid.shape != grids_size:
-                grid = self.padding(grid, grids_size=grids_size)
+            if grid.shape != grid_size:
+                grid = self.padding(grid, grid_size=grid_size)
 
             grids_pad.append(grid)
 
-        if self.batch_size > 0:
-            grids_pad = rd.choice(grids_pad, k=self.batch_size)
-
+        if 0 < self.batch_size < len(grids_pad):
+            grids_pad = rd.sample(grids_pad, k=self.batch_size)
         grids_pad = torch.tensor(grids_pad)
+
         return [grids_pad] * 2
 
-    def padding(self, grid, grids_size = None):
+    def padding(self, grid, grid_size = None):
 
         assert isinstance(grid_size, (list, tuple)) \
         or isinstance(self.grid_size, (list, tuple))
@@ -104,8 +110,8 @@ class iARCDatasetNaive(Dataset):
         if grid_size is None:
             grid_size = self.grid_size
 
-        pad_h = grids_size[0] - grid.shape[0]
-        pad_v = grids_size[1] - grid.shape[1]
+        pad_h = grid_size[0] - grid.shape[0]
+        pad_v = grid_size[1] - grid.shape[1]
 
         if self.padding_mode == 'center':
             pads = [(pad_h // 2, pad_h - (pad_h // 2)), 
@@ -124,7 +130,7 @@ class iARCDatasetNaive(Dataset):
             pads[1] = (pad_v, 0)
 
         assert all([p is not None for p in pads])
-        grid = np.pad(grid, pad_width=pads, constant_values=-1)
+        grid = np.pad(grid, pad_width=pads, constant_values=self.padding_value)
         return grid
 
     def randomize(self):

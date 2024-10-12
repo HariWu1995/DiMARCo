@@ -288,10 +288,15 @@ def get_data_json(version: str = 'latest', dataset_dir = None):
     return json.load(open(dataset_fullpath))
 
 
-def load_data(data: dict = None, version: str = 'latest', eval: bool = True):
+def load_data(data: dict = None, version: str = 'latest', 
+              eval: bool = True, combine: bool = False):
     """
     Load the ARC dataset from disk. 
     Optionally, specify a version of the dataset to load.
+
+           eval: whether to return eval_taskset
+        combine: whether to combine train and eval tasksets, 
+                    lower priority than `eval` flag
     """
     if data is None:
         data = get_data_json(version)
@@ -300,16 +305,23 @@ def load_data(data: dict = None, version: str = 'latest', eval: bool = True):
     for id, task in data['train'].items():
         train_tasks.append(Task(id, task['train'], task['test'], 'train', version=version))
 
-    train_tasks = TaskSet(train_tasks)
-    if not eval:
+    if (not eval) and (not combine):
+        train_tasks = TaskSet(train_tasks)
         return train_tasks
 
     eval_tasks = []
     for id, task in data['eval'].items():
         eval_tasks.append(Task(id, task['train'], task['test'], 'eval', version=version))
 
-    eval_tasks = TaskSet(eval_tasks)
-    return train_tasks, eval_tasks
+    if eval:
+        train_tasks = TaskSet(train_tasks)
+        eval_tasks = TaskSet(eval_tasks)
+        return train_tasks, eval_tasks
+
+    elif combine:
+        train_tasks = train_tasks + eval_tasks
+        train_tasks = TaskSet(train_tasks)
+        return train_tasks
 
 
 def format_data(train_challenges, train_solutions, 
