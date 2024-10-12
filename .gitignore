@@ -3,6 +3,14 @@ archive/
 venv/
 # extensions/
 
+# Checkpoints
+*.safetensors
+*.onnx
+*.ckpt
+*.pth
+*.pt
+*.bin
+
 # Download objects
 *.crdownload
 

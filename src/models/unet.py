@@ -28,9 +28,9 @@ class UNet(nn.Module):
         block_channels = tuple(block_channels)
 
         num_resnet_layers = kwargs.get('num_resnet_layers', 2)
-        down_block_layers = ("DownBlock2D","AttnDownBlock2D","AttnDownBlock2D")
-        up_block_layers = ("AttnUpBlock2D","AttnUpBlock2D","UpBlock2D")
-
+        down_block_layers = ["DownBlock2D"] + ["AttnDownBlock2D"] * num_stages
+        up_block_layers = ["AttnUpBlock2D"] * num_stages + ["UpBlock2D"]
+        
         self.backbone = UNet2D(
                             in_channels = in_channels,
                            out_channels = out_channels,

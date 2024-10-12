@@ -10,26 +10,31 @@ from src.trainer.dimarco import ModelTrainer
 
 
 ## Configuration
-model_name = 'unet'
+augmented = True
 padding_value = -1
-training_folder = f'./results/dimarco-iarc2daug-{model_name}'
+
+data_name = 'iarc2d' + ('aug' if augmented else '')
+model_name = 'unet'
+trainer_name = 'dimarco'
+
+training_folder = f'./results/{trainer_name}-{data_name}-{model_name}'
 
 if not os.path.isdir(training_folder):
     Path(training_folder).mkdir(parents=True, exist_ok=True)
 
 dataset_config = dict(
-         augmented = True,
        num_classes = 10,
         batch_size = -1, 
          grid_size = [32, 32],
     normalize_size = False, 
       padding_mode = 'center',
      padding_value = padding_value,
+         augmented = augmented,
 )
 
 model_config = dict(
     backbone = model_name, 
-    num_stages = 2, init_filters = 32,
+    num_stages = 3, init_filters = 64,
     num_classes = 10, background_class = padding_value,
 )
 
@@ -70,9 +75,9 @@ task_set = arckit.format_data(train_challenges, train_solutions,
 task_set = arckit.load_data(task_set, eval=False, combine=True)
 
 if dataset_config.pop('augmented', False):
-    from src.datasets.iarc_2d import iARCDatasetAug as Dataset
+    from src.datasets import iARCDatasetAug as Dataset
 else:
-    from src.datasets.iarc_2d import iARCDatasetNaive as Dataset
+    from src.datasets import iARCDatasetNaive as Dataset
 
 dataset = Dataset(task_set=task_set, **dataset_config)
 print('\n\n Dataset size:', len(dataset))

@@ -243,14 +243,16 @@ class ModelTrainer:
         n = N * torch.rand(x.shape[0])
         x_n = self.noischedule(x, n)
         x_n = x_n.to(device)
+        X = [x_n, c] if self.backbone == 'catunet' else [x_n]
 
         # Objective
         if self.objective == 'initial':
-            y = x.to(device)
+            y = x.to(device) if self.backbone != 'catunet' else c
+
         elif self.objective == 'noise':
             y = n.to(device)
 
-        return [x_n, c] if self.backbone == 'catunet' else [x_n], y
+        return X, y
 
     def train(self):
         is_main = self.accelerator.is_main_process
