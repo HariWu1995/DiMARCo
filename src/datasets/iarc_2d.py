@@ -58,6 +58,11 @@ class iARCDatasetNaive(Dataset):
             idx = idx % len(self)
             
         task = self.task_set[idx]
+        grids = self.extract_grid(task)
+
+        return grids
+
+    def extract_grid(self, task):
 
         # un-Parsing
         grid_max_H = 0
@@ -156,33 +161,42 @@ class iARCDatasetAug(iARCDatasetNaive):
           **kwargs
         ):
 
-        super(iARCDatasetAug, self).__init__(task_set, batch_size, grid_size, **kwargs)
+        super().__init__(task_set, batch_size, grid_size, **kwargs)
 
         # Add augmentors
         self.augmentors = [None]
         if isinstance(augmentors, (List, Tuple)):
             if not augmentors[0]:
-                self.augmentors = augmentors
+                self.augmentors = [augmentors]
             elif callable(augmentors[0]):
-                self.augmentors = augmentors
+                self.augmentors = [augmentors]
             elif isinstance(augmentors[0], (List, Tuple)):
-                self.augmentors = iter_product(augmentors)
+                self.augmentors = list(iter_product(augmentors))
 
     def __getitem__(self, idx):
-        
+
+        if idx >= len(self):
+            print(f'[Warning] index {idx} should be lower than {len(self)}. '
+                  f'It will be reduced to {idx % len(self)}')
+            idx = idx % len(self)
+            
+        task = self.task_set[idx]
+    
         # Get padded grids -> (batch_size, batch_max_height, batch_max_width)
-        grids_pad = super(iARCDatasetAug, self)[idx][0]
+        grids_pad = self.extract_grid(task)[0]
         grids_pad = grids_pad.detach().cpu().numpy()
 
         # Augmentation
         grids_aug = []
         for grid in grids_pad:
-            aug = rd.choice(self.augmentors)
-            if isinstance(aug, List):
-                for Fx in aug:
-                    grid = Fx(grid)
-            elif isinstance(grid, Callable):
-                grid = aug(grid)
+            Fx = rd.choice(self.augmentors)
+            if isinstance(Fx, (List, Tuple)):
+                for fx in Fx:
+                    if not isinstance(fx, Callable):
+                        continue
+                    grid = fx(grid)
+            elif isinstance(Fx, Callable):
+                grid = Fx(grid)
             grids_aug.append(grid)
 
         grids_aug = torch.tensor(grids_aug)

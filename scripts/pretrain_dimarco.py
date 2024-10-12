@@ -4,20 +4,21 @@
 import os
 from pathlib import Path
 
-from src.datasets.iarc_2d import iARCDatasetNaive as Dataset
-# from src.datasets.iarc_2d import iARCDatasetAug as Dataset
-from src.trainer.dimarco import ModelTrainer
-
 import src.arckit as arckit
 import src.utils as utils
+from src.trainer.dimarco import ModelTrainer
 
 
 ## Configuration
 model_name = 'unet'
 padding_value = -1
-training_folder = f'./results/dimarco-iarc2d-{model_name}'
+training_folder = f'./results/dimarco-iarc2daug-{model_name}'
+
+if not os.path.isdir(training_folder):
+    Path(training_folder).mkdir(parents=True, exist_ok=True)
 
 dataset_config = dict(
+         augmented = True,
        num_classes = 10,
         batch_size = -1, 
          grid_size = [32, 32],
@@ -67,6 +68,11 @@ task_set = arckit.format_data(train_challenges, train_solutions,
                                eval_challenges,  eval_solutions)
 
 task_set = arckit.load_data(task_set, eval=False, combine=True)
+
+if dataset_config.pop('augmented', False):
+    from src.datasets.iarc_2d import iARCDatasetAug as Dataset
+else:
+    from src.datasets.iarc_2d import iARCDatasetNaive as Dataset
 
 dataset = Dataset(task_set=task_set, **dataset_config)
 print('\n\n Dataset size:', len(dataset))

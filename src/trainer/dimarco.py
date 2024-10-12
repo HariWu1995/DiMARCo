@@ -134,7 +134,7 @@ class ModelTrainer:
         if self.eval_loader:
             self.eval_loader = self.accelerator.prepare(self.eval_loader)
 
-        ## Resulting
+        ## Checkpoint
         self.save_best_ckpt = save_best_ckpt
         self.save_last_ckpt = save_last_ckpt
         self.save_every_ckpt = save_every_ckpt

@@ -1,4 +1,5 @@
 data:
+  augmented: false
   batch_size: -1
   grid_size:
   - 32
