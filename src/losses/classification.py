@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
 
 
 class NLLLoss(nn.Module):
@@ -50,27 +52,47 @@ class BCEWithLogitsLoss(nn.Module):
         return self.loss_fn(predicted, target)
 
 
-class FocalLoss(BCEWithLogitsLoss):
-    """
-    Focal Loss (used for handling class imbalance)
-    """
-    def __init__(self, alpha=1, gamma=2):
-        super(FocalLoss, self).__init__(reduction=None)
-        self.alpha = alpha
+class FocalLoss(nn.Module):
+
+    def __init__(self, gamma=0, alpha=None, reduction: str = 'mean'):
+
+        super(FocalLoss, self).__init__()
+
+        self.reduction = reduction
         self.gamma = gamma
 
-    def forward(self, predicted, target):
+        if isinstance(alpha, (float, int)): 
+            self.alpha = torch.Tensor([alpha, 1-alpha])
+        elif isinstance(alpha, (list, tuple)): 
+            self.alpha = torch.Tensor(alpha)
+        else:
+            self.alpha = None
 
-        # Compute BCE with logits
-        BCE_loss = super(FocalLoss, self).forward(predicted, target)
+    def forward(self, pred, target):
+        if pred.dim() > 2:
+            pred = pred.view(pred.size(0), pred.size(1), -1)    # N, C, H,W => N, C, H*W
+            pred = pred.transpose(1,2)                          # N, C, H*W => N, H*W, C
+            pred = pred.contiguous().view(-1, pred.size(2))     # N, H*W, C => N*H*W, C
 
-        # Convert predicted logits to probabilities
-        pt = torch.sigmoid(predicted)
+        target = target.view(-1,1)
 
-        # Compute focal loss
-        pt = target * pt + (1 - target) * (1 - pt)  # probability of correct class
-        focal_weight = (1 - pt) ** self.gamma       # Focusing factor        
-        focal_loss = self.alpha * focal_weight * BCE_loss
+        logpt = F.log_softmax(pred)
+        logpt = logpt.gather(1, target)
+        logpt = logpt.view(-1)
+        pt = Variable(logpt.data.exp())
 
-        return torch.mean(focal_loss)
+        if self.alpha is not None:
+            if self.alpha.type() != pred.data.type():
+                self.alpha = self.alpha.type_as(pred.data)
+            at = self.alpha.gather(0, target.data.view(-1))
+            logpt = logpt * Variable(at)
+
+        loss = -1 * (1-pt)**self.gamma * logpt
+
+        if self.reduction == 'mean': 
+            return loss.mean()
+        elif self.reduction == 'sum': 
+            return loss.sum()
+        else:
+            return loss
 

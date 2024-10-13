@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 
-
-eps = 1e-7
+from ..const import eps
 
 
 class MSELoss(nn.Module):
@@ -101,4 +100,16 @@ class AdjustedRSquaredLoss(nn.Module):
         # Adjusted R-squared formula
         adj_r_squared = 1 - ((1 - r_squared) * (n - 1)) / (n - p - 1 + eps)
         return adj_r_squared
+
+
+class BoundaryLoss(nn.Module):
+
+    def __init__(self):
+        super(BoundaryLoss, self).__init__()
+
+    def forward(self, pred, target, mask):
+        boundary_pred   = torch.abs(torch.gradient(  pred, dim=1)) * mask
+        boundary_target = torch.abs(torch.gradient(target, dim=1)) * mask
+        
+        return F.mse_loss(boundary_pred, boundary_target)
 

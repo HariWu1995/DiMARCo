@@ -34,7 +34,7 @@ dataset_config = dict(
 
 model_config = dict(
     backbone = model_name, 
-    num_stages = 3, init_filters = 64,
+    num_stages = 2, init_filters = 64,
     num_classes = 10, background_class = padding_value,
 )
 
@@ -45,7 +45,7 @@ trainer_config = dict(
 )
 
 callback_config = dict(save_folder = training_folder)
-diffuser_config = dict(noise_schedule = 'beta', diffusion_steps = 10)
+diffuser_config = dict(noise_schedule = 'beta', denoising_steps = 20, train_noise = 0.888)
 distributed_config = dict(precision_type = 'fp16', distributed_batches = True)
 
 all_config = dict(  data = dataset_config, 

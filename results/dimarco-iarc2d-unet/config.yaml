@@ -9,7 +9,7 @@ data:
   padding_mode: center
   padding_value: -1
 diffuser:
-  diffusion_steps: 10
+  denoising_steps: 10
   noise_schedule: beta
 model:
   backbone: unet

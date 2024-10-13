@@ -9,12 +9,13 @@ data:
   padding_mode: center
   padding_value: -1
 diffuser:
-  diffusion_steps: 10
+  denoising_steps: 20
   noise_schedule: beta
+  train_noise: 0.888
 model:
   backbone: unet
   background_class: -1
-  init_filters: 32
+  init_filters: 64
   num_classes: 10
   num_stages: 2
 trainer:

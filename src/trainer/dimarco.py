@@ -47,7 +47,7 @@ class ModelTrainer:
         # Diffusion
         objective: str = 'initial',
     noise_schedule: str = 'beta',
-    diffusion_steps: int = 10, 
+    denoising_steps: int = 10, 
         eval_noise: float = 0.768,
         train_noise: float = 0.95,
         # min_noise: float = math.sqrt(eps), 
@@ -84,7 +84,7 @@ class ModelTrainer:
 
         ## Diffusion
         self.objective = objective.lower()  # prediction: target (y) / noise (n) / initial (x, default)
-        self.diff_steps = diffusion_steps
+        self.denoissteps = denoising_steps
         self.noischedule = alpha_schedule if noise_schedule == 'alpha' else \
                             beta_schedule
         self.train_noise = train_noise
@@ -286,7 +286,7 @@ class ModelTrainer:
 
                 # Prediction
                 with self.accelerator.autocast():
-                    y_hat = self.model(*x, t = self.diff_steps)
+                    y_hat = self.model(*x, t=self.denoissteps)
                     loss  = self.loss_fn(y, y_hat)
                     loss /= self.accum_steps
                     total_loss += loss.item()
@@ -318,7 +318,7 @@ class ModelTrainer:
                 for x, y in eval_loader:
                     x, y = self.preprocess(x, y, self.eval_noise)
                     with torch.no_grad():
-                        y_hat = self.model(*x)
+                        y_hat = self.model(*x, t=self.denoissteps)
                         loss = self.loss_fn(y, y_hat)
                         loss_eval += loss.item()
 
