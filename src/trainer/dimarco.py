@@ -24,6 +24,7 @@ from ..optimizers import get_optimizer
 from ..losses import get_loss_fn
 from ..noise import alpha_schedule, beta_schedule
 from ..const import eps, inf
+
 from .utils import loop
 from .callbacks import EarlyStopping
 from .lr_schedulers import get_scheduler
@@ -43,6 +44,7 @@ class ModelTrainer:
         init_filters: int = 32,
     background_class: int = -1,
     upscale_bilinear: bool = True,
+        layered_input: bool = False,
 
         # Diffusion
         objective: str = 'initial',
@@ -98,7 +100,9 @@ class ModelTrainer:
                 init_filters = init_filters,
             background_class = background_class,
             upscale_bilinear = upscale_bilinear,
+               layered_input = layered_input,
         )
+        self.layered_input = layered_input
 
         ## Training
         self.num_steps = num_steps if num_epochs <= 0 else \
@@ -112,6 +116,7 @@ class ModelTrainer:
         self.train_loader = train_dataloader
         self.eval_loader = eval_dataloader
 
+        self.loss_mask = loss_fn in ['focal-layered','mse-layered','boundary-mse']
         self.loss_fn = loss_fn if isinstance(loss_fn, nn.Module) else \
                                 get_loss_fn(loss_fn=loss_fn)
 
@@ -148,10 +153,13 @@ class ModelTrainer:
         return self.accelerator.device
 
     def build(self, backbone, init_filters, num_stages, 
-            upscale_bilinear=None, num_classes=None, background_class=None, **kwargs):
+                    upscale_bilinear = None, num_classes = None, 
+                    background_class = None, layered_input = False, **kwargs):
 
-        unet_kwargs = dict( in_channels = 1, 
-                            out_channels = 1, 
+        num_channels = num_classes if layered_input else 1
+
+        unet_kwargs = dict( in_channels = num_channels, 
+                            out_channels = num_channels, 
                             init_filters = init_filters,
                             num_stages = num_stages, )
 
@@ -227,23 +235,35 @@ class ModelTrainer:
 
         device = self.device
 
-        x = x.unsqueeze(dim=1)
-        y = y.unsqueeze(dim=1).to(device)
-
-        # Special cases
-        if self.backbone == 'catunet':
-            # x can be considered as mask / magnitude of category `c`
-            c = x.to(device)
-            x = torch.where(x >= 0, 1., 0)            
+        # 3D grid
+        if self.layered_input:
+            x, m = x
+            x = x.to(torch.float)
+            m = m.to(torch.float).to(device)
+            y = y.to(torch.float).to(device)
+        
+        # 2D grid
         else:
-            # normalize num_classes = 10, background = -1
-            x = torch.where(x >= 0, x/10, x)
+            m = None
+            x = x.unsqueeze(dim=1)
+            y = y.unsqueeze(dim=1).to(device)
+
+            if self.backbone == 'catunet':
+                # x can be considered as mask / magnitude of category `c`
+                c = x.to(device)
+                x = torch.where(x >= 0, 1., 0)
+            else:
+                # normalize num_classes = 10, background = -1
+                x = torch.where(x >= 0, x/10, x)
 
         # Add noise
         n = N * torch.rand(x.shape[0])
-        x_n = self.noischedule(x, n)
-        x_n = x_n.to(device)
-        X = [x_n, c] if self.backbone == 'catunet' else [x_n]
+        x_n = self.noischedule(x, n).to(device)
+
+        if self.layered_input:
+            X = [x_n]
+        else:
+            X = [x_n, c] if self.backbone == 'catunet' else [x_n]
 
         # Objective
         if self.objective == 'initial':
@@ -252,7 +272,7 @@ class ModelTrainer:
         elif self.objective == 'noise':
             y = n.to(device)
 
-        return X, y
+        return X, y, m
 
     def train(self):
         is_main = self.accelerator.is_main_process
@@ -282,12 +302,13 @@ class ModelTrainer:
 
                 # Load batch samples
                 x, y = next(train_loader)
-                x, y = self.preprocess(x, y, self.train_noise)
+                x, y, m = self.preprocess(x, y, self.train_noise)
 
                 # Prediction
                 with self.accelerator.autocast():
                     y_hat = self.model(*x, t=self.denoissteps)
-                    loss  = self.loss_fn(y, y_hat)
+                    loss  = self.loss_fn(y_hat, y, m) if self.loss_mask else \
+                            self.loss_fn(y_hat, y)
                     loss /= self.accum_steps
                     total_loss += loss.item()
 
@@ -295,7 +316,7 @@ class ModelTrainer:
                 self.accelerator.backward(loss)
 
             losses.append(total_loss)
-            pbar.set_description(f'loss: {total_loss:.4f}')
+            pbar.set_description(f'loss: {total_loss:.7f}')
 
             self.accelerator.wait_for_everyone()
             self.accelerator.clip_grad_norm_(self.model.parameters(), max_gradient)
@@ -316,10 +337,11 @@ class ModelTrainer:
                 loss_eval = 0.
 
                 for x, y in eval_loader:
-                    x, y = self.preprocess(x, y, self.eval_noise)
+                    X, y, m = self.preprocess(x, y, self.eval_noise)
                     with torch.no_grad():
-                        y_hat = self.model(*x, t=self.denoissteps)
-                        loss = self.loss_fn(y, y_hat)
+                        y_hat = self.model(*X, t = self.denoissteps)
+                        loss = self.loss_fn(y, y_hat, m) if self.loss_mask else \
+                               self.loss_fn(y, y_hat)
                         loss_eval += loss.item()
 
                 losses_val.append(loss_eval)
@@ -361,6 +383,6 @@ class ModelTrainer:
                                      eval_loss=losses_val,)).drop(index=[0]).reset_index(names=['iteration'])
         loss_df.to_csv(str(self.save_folder / 'losses.csv'), index=False)
 
-        self.accelerator.print('Training is finished!')
+        self.accelerator.print('\n\n\n Training is finished!')
 
 

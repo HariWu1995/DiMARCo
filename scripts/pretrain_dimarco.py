@@ -11,9 +11,10 @@ from src.trainer.dimarco import ModelTrainer
 
 ## Configuration
 augmented = True
+categorical = True
 padding_value = -1
 
-data_name = 'iarc2d' + ('aug' if augmented else '')
+data_name = 'iarc' + ('_cat' if categorical else ('_aug' if augmented else ''))
 model_name = 'unet'
 trainer_name = 'dimarco'
 
@@ -30,18 +31,23 @@ dataset_config = dict(
       padding_mode = 'center',
      padding_value = padding_value,
          augmented = augmented,
+       categorical = categorical,
 )
 
 model_config = dict(
     backbone = model_name, 
-    num_stages = 2, init_filters = 64,
+    num_stages = 3, init_filters = 64,
     num_classes = 10, background_class = padding_value,
+    layered_input = categorical,
 )
 
 trainer_config = dict(
-    loss_fn = 'huber', optimizer = 'adam', 
-    lr = 0.000169, lr_schedule = 'cosine', num_epochs = 10, 
-    grad_max_norm = [6.9, 1.69], accum_steps = 4,
+    loss_fn = 'mse-layered',  # 2D: huber, 3D: mse-layered
+    optimizer = 'adam', 
+    lr_schedule = 'cosine', lr = 0.000369, 
+    num_epochs = 10, 
+    accum_steps = 4,
+    grad_max_norm = [6.9, 1.69], 
 )
 
 callback_config = dict(save_folder = training_folder)
@@ -74,8 +80,12 @@ task_set = arckit.format_data(train_challenges, train_solutions,
 
 task_set = arckit.load_data(task_set, eval=False, combine=True)
 
-if dataset_config.pop('augmented', False):
+if dataset_config.pop('categorical', False):
+    from src.datasets import iARCDatasetDepth as Dataset
+
+elif dataset_config.pop('augmented', False):
     from src.datasets import iARCDatasetAug as Dataset
+
 else:
     from src.datasets import iARCDatasetNaive as Dataset
 

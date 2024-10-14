@@ -12,7 +12,7 @@ def _schedule(x, scale):
     if not isinstance(scale, torch.Tensor):
         scale = torch.tensor(scale)
     scale = scale.view(-1, *[1] * len(x.shape[1:]))
-    noise = torch.rand_like(x)
+    noise = torch.rand_like(x.to(torch.float))
     return noise, scale
 
 

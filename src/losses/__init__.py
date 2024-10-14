@@ -1,6 +1,7 @@
 from .distance import *
 from .regression import *
 from .classification import *
+from .customized import *
 
 
 def get_loss_fn(loss_fn: str = None, task: str = None):
@@ -47,6 +48,15 @@ def get_loss_fn(loss_fn: str = None, task: str = None):
 
     elif loss_fn in ['focal']:
         return FocalLoss()
+
+    elif loss_fn in ['focal-layered']:
+        return LayeredFocalLoss()
+
+    elif loss_fn in ['mse-layered']:
+        return LayeredMSELoss()
+
+    elif loss_fn in ['boundary-mse']:
+        return BoundaryAwareLoss()
 
     raise ValueError(f"Unknown loss_fn: {loss_fn}. Please choose a valid loss_fn.")
 

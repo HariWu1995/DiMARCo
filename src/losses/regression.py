@@ -8,9 +8,9 @@ class MSELoss(nn.Module):
     """
     Mean Squared Error Loss
     """
-    def __init__(self):
+    def __init__(self, reduction: str = 'mean'):
         super(MSELoss, self).__init__()
-        self.loss_fn = nn.MSELoss()
+        self.loss_fn = nn.MSELoss(reduction=reduction)
 
     def forward(self, predicted, target):
         return self.loss_fn(predicted, target)
@@ -20,9 +20,9 @@ class MAELoss(nn.Module):
     """
     Mean Absolute Error Loss (L1 Loss)
     """
-    def __init__(self):
+    def __init__(self, reduction: str = 'mean'):
         super(L1Loss, self).__init__()
-        self.loss_fn = nn.L1Loss()
+        self.loss_fn = nn.L1Loss(reduction=reduction)
 
     def forward(self, predicted, target):
         return self.loss_fn(predicted, target)
@@ -32,9 +32,9 @@ class HuberLoss(nn.Module):
     """
     Huber Loss (Smooth L1 Loss)
     """
-    def __init__(self, delta=1.0):
+    def __init__(self, reduction: str = 'mean', beta: float = 1.0):
         super(HuberLoss, self).__init__()
-        self.loss_fn = nn.SmoothL1Loss()
+        self.loss_fn = nn.SmoothL1Loss(reduction=reduction, beta=beta)
 
     def forward(self, predicted, target):
         return self.loss_fn(predicted, target)
@@ -44,24 +44,29 @@ class LogCoshLoss(nn.Module):
     """
     Log-Cosh Loss
     """
-    def __init__(self):
+    def __init__(self, reduction: str = 'mean'):
         super(LogCoshLoss, self).__init__()
+        self.reduction = reduction
 
     def forward(self, predicted, target):
         diff = predicted - target
-        return torch.mean(torch.log(torch.cosh(diff)))
+        loss = torch.log(torch.cosh(diff))
+        return loss.mean() if self.reduction == 'mean' else \
+              (loss.sum() if self.reduction == 'sum' else loss)
 
 
 class MAPELoss(nn.Module):
     """
     Mean Absolute Percentage Error (MAPE)
     """
-    def __init__(self):
+    def __init__(self, reduction: str = 'mean'):
         super(MAPELoss, self).__init__()
+        self.reduction = reduction
 
     def forward(self, predicted, target):
-        percentage_error = torch.abs((target - predicted) / (target + eps))
-        return torch.mean(percentage_error) * 100
+        loss = torch.abs((target - predicted) / (target + eps)) * 100.
+        return loss.mean() if self.reduction == 'mean' else \
+              (loss.sum() if self.reduction == 'sum' else loss)
 
 
 class RSquaredLoss(nn.Module):
@@ -104,12 +109,13 @@ class AdjustedRSquaredLoss(nn.Module):
 
 class BoundaryLoss(nn.Module):
 
-    def __init__(self):
+    def __init__(self, reduction: str = 'mean'):
         super(BoundaryLoss, self).__init__()
+        self.reduction = reduction
 
     def forward(self, pred, target, mask):
         boundary_pred   = torch.abs(torch.gradient(  pred, dim=1)) * mask
         boundary_target = torch.abs(torch.gradient(target, dim=1)) * mask
         
-        return F.mse_loss(boundary_pred, boundary_target)
+        return F.mse_loss(boundary_pred, boundary_target, reduction=self.reduction)
 

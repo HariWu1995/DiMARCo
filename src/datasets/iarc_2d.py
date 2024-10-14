@@ -187,6 +187,13 @@ class iARCDatasetAug(iARCDatasetNaive):
         grids_pad = grids_pad.detach().cpu().numpy()
 
         # Augmentation
+        grids_aug = self.augment(grids_pad)
+        grids_aug = torch.tensor(grids_aug)
+    
+        return [grids_aug] * 2
+    
+    def augment(self, grids_pad):
+
         grids_aug = []
         for grid in grids_pad:
             Fx = rd.choice(self.augmentors)
@@ -199,6 +206,5 @@ class iARCDatasetAug(iARCDatasetNaive):
                 grid = Fx(grid)
             grids_aug.append(grid)
 
-        grids_aug = torch.tensor(grids_aug)
-        return [grids_aug] * 2
+        return grids_aug
 
