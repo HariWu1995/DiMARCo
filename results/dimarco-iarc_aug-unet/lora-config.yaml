@@ -1,0 +1,29 @@
+data:
+  augmented: true
+  batch_size: -1
+  categorical: false
+  grid_size:
+  - 32
+  - 32
+  normalize_size: false
+  num_classes: 10
+  padding_mode: center
+  padding_value: -1
+diffuser:
+  denoising_steps: 20
+  noise_schedule: beta
+  train_noise: 0.888
+model:
+  adapter: lora
+  adapter_rank: 64
+  adapter_weight: 1.0
+  backbone: unet
+  layered_input: false
+trainer:
+  eval_step: 5
+  grad_max_norm: 1.69
+  loss_fn: huber
+  lr: 0.00169
+  lr_schedule: cosine
+  num_steps: 100
+  optimizer: adam

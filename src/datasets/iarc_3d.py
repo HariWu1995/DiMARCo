@@ -1,5 +1,5 @@
 """
-DataLoader to enrich data
+identity-DataLoader to enrich data
     from naïve ARC 2D-format (H x W)
     to multi-layer 3D-format (H x W x C), 
         where C = 10 is number of non-background values
@@ -8,14 +8,12 @@ from typing import List, Tuple, Union, Callable
 
 import random as rd
 import numpy as np
-
 import torch
-from torch.utils.data import Dataset
 
-from src.arckit.data import Task, TaskSet
+from src.arckit.data import TaskSet
 
-from .utils.encoder import encode_1hot
 from .iarc_2d import iARCDatasetAug, AUGMENTATIONS
+from .utils import encode_1hot
 
 
 class iARCDatasetDepth(iARCDatasetAug):

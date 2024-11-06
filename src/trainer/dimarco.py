@@ -22,6 +22,7 @@ from accelerate import Accelerator
 
 from ..optimizers import get_optimizer
 from ..losses import get_loss_fn
+from ..models import build_model
 from ..noise import alpha_schedule, beta_schedule
 from ..const import eps, inf
 
@@ -34,7 +35,7 @@ class ModelTrainer:
 
     def __init__( self, 
         
-        train_dataloader,
+        train_dataloader = None,
         eval_dataloader = None,
 
         # Model
@@ -93,7 +94,8 @@ class ModelTrainer:
         self.eval_noise = eval_noise
 
         ## Modeling
-        self.build( 
+        self.backbone = backbone.lower()
+        self.model = build_model( 
                     backbone = backbone, 
                   num_stages = num_stages,
                  num_classes = num_classes,
@@ -151,36 +153,6 @@ class ModelTrainer:
     @property
     def device(self):
         return self.accelerator.device
-
-    def build(self, backbone, init_filters, num_stages, 
-                    upscale_bilinear = None, num_classes = None, 
-                    background_class = None, layered_input = False, **kwargs):
-
-        num_channels = num_classes if layered_input else 1
-
-        unet_kwargs = dict( in_channels = num_channels, 
-                            out_channels = num_channels, 
-                            init_filters = init_filters,
-                            num_stages = num_stages, )
-
-        self.backbone = backbone.lower()
-
-        if self.backbone == 'catunet':
-            from ..models import CatUNet as UNet
-            unet_kwargs.update(dict(num_classes=num_classes, 
-                                background_class=background_class))
-
-        elif self.backbone == 'dilunet':
-            from ..models import DilUNet as UNet
-            unet_kwargs.update(dict(upscale_bilinear=upscale_bilinear))
-
-        elif self.backbone == 'munet':
-            from ..models import mUNet as UNet
-
-        else:
-            from ..models import UNet
-        
-        self.model = UNet(**unet_kwargs)
 
     def save(self, milestone: str or int = 'latest', 
                 weights_only: bool = True):
@@ -276,7 +248,7 @@ class ModelTrainer:
 
     def train(self):
         is_main = self.accelerator.is_main_process
-        device = self.device
+        device = self.accelerator.device
 
         eval_loader  =  self.eval_loader
         train_loader = self.train_loader
@@ -381,7 +353,8 @@ class ModelTrainer:
         import pandas as pd
         loss_df = pd.DataFrame(dict(train_loss=losses, 
                                      eval_loss=losses_val,)).drop(index=[0]).reset_index(names=['iteration'])
-        loss_df.to_csv(str(self.save_folder / 'losses.csv'), index=False)
+        loss_df.to_csv(
+                str(self.save_folder / 'model-losses.csv'), index=False)
 
         self.accelerator.print('\n\n\n Training is finished!')
 

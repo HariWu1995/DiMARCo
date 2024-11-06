@@ -8,7 +8,9 @@
 --------------------------
 ## To-Do List
 
-- [x] Multi-view **Diffusion Model** for different grid-size
+- [x] **Diffusion Model** for all tasks (as foundation model)
+- [x] **LoRA** Training for single task
+- [ ] Random / Grid / Neural **ARChitecture Search** for LoRA-training optimization
 - [ ] **Optical-Flow** as ControlNet Module
 - [ ] **Video-Interpolation** as Reasoning Module
 
