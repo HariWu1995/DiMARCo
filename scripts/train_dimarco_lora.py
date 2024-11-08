@@ -18,8 +18,9 @@ from src.trainer.dimarco_lora import LoraTrainer as Trainer
 
 ## Configuration
 augmented = True
-categorical = True
+categorical = False
 padding_value = -1
+adapter_type = 'lora'
 
 data_name = 'iarc' + ('_cat' if categorical else ('_aug' if augmented else ''))
 model_name = 'unet'
@@ -37,7 +38,7 @@ trainer_config = all_config['trainer']
 diffuser_config = all_config['diffuser']
 basemodel_config = all_config['model']
 
-lora_folder = os.path.join(training_folder, 'lora')
+lora_folder = os.path.join(training_folder, adapter_type)
 
 if not os.path.isdir(lora_folder):
     Path(lora_folder).mkdir(parents=True, exist_ok=True)
@@ -49,17 +50,18 @@ model_config = dict(
     backbone = model_name,
     layered_input = categorical,
 
-    adapter = 'lora',
+    adapter = adapter_type,
     adapter_rank = 64,
     adapter_weight = 1.,
 )
 
-trainer_config.update(dict(
-    num_steps = 100, 
-    eval_step = 5,
-    lr = 0.00169, 
-    grad_max_norm = 1.69, 
-))
+diffuser_config.update(dict(denoising_steps = 49))
+
+trainer_config.update(dict( num_steps = 100, 
+                            eval_step = 5,
+                            optimizer = 'prodigy',
+                                   lr = 0.00169, 
+                        grad_max_norm = 1.69, ))
 
 del trainer_config['num_epochs']
 del trainer_config['accum_steps']
@@ -69,7 +71,7 @@ all_config = dict(  data = dataset_config,
                     trainer = trainer_config, 
                     diffuser = diffuser_config, )
 
-utils.save_yaml(os.path.join(training_folder, 'lora-config.yaml'), all_config)
+utils.save_yaml(os.path.join(training_folder, f'{adapter_type}-config.yaml'), all_config)
 
 
 ## Load data
@@ -144,5 +146,5 @@ for subset, taskset in [('train', train_set), ('eval', eval_set)]:
 ## Logging
 
 results_df = pd.DataFrame.from_dict(trainer_log)
-results_df.to_csv(training_folder + '/lora-losses.csv', index=False)
+results_df.to_csv(training_folder + f'/{adapter_type}-losses.csv', index=False)
 

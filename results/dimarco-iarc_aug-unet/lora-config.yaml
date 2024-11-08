@@ -10,7 +10,7 @@ data:
   padding_mode: center
   padding_value: -1
 diffuser:
-  denoising_steps: 20
+  denoising_steps: 49
   noise_schedule: beta
   train_noise: 0.888
 model:
@@ -26,4 +26,4 @@ trainer:
   lr: 0.00169
   lr_schedule: cosine
   num_steps: 100
-  optimizer: adam
+  optimizer: prodigy

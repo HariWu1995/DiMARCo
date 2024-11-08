@@ -34,6 +34,8 @@ def get_optimizer(optimizer_name):
         from torch.optim import RMSprop as Optimizer
     elif optimizer_name == 'lbfgs':
         from torch.optim import LBFGS as Optimizer
+    elif optimizer_name == 'prodigy':
+        from .advanced import Prodigy as Optimizer
     else:
         raise ValueError(f"Unknown optimizer: {optimizer_name}. Please choose a valid optimizer.")
 

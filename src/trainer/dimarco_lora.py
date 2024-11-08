@@ -249,7 +249,7 @@ class LoraTrainer:
 
             # Prediction
             with self.accelerator.autocast():
-                y_hat = self.model(*x, t=self.denoissteps)
+                y_hat = self.model(*x, t = self.denoissteps)
                 loss  = self.loss_fn(y_hat, y, m) if self.loss_mask else \
                         self.loss_fn(y_hat, y)
 
@@ -281,7 +281,7 @@ class LoraTrainer:
                 with torch.no_grad():
                     y_hat = self.model(*X, t = self.denoissteps)
                     loss = self.loss_fn(y, y_hat, m) if self.loss_mask else \
-                            self.loss_fn(y, y_hat)
+                           self.loss_fn(y, y_hat)
                     loss_eval = loss.item()
 
                 losses_val.append(loss_eval)

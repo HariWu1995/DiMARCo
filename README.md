@@ -2,8 +2,8 @@
 
 [**DiMARCo**] Diffusion Model for ARCorpus
 
-- Stay away from the hottest trending of LLM that being considered as AGI and being able to solve anything in the world;
-- I still see ARC as a **visual task** and should be solved with **vision model** and **reasoning model**.
+- Stay away from the hottest trending of LLM that being considered as AGI and having ability to solve anything in the world;
+- In my shallow opinion, ARC is still a **visual task** and should be solved with **vision model** with the support of **reasoning model**.
 
 --------------------------
 ## To-Do List
