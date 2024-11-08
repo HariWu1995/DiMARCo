@@ -89,7 +89,16 @@ class ARCDatasetNaive(Dataset):
 
 class ARCDatasetDepth(ARCDatasetNaive):
 
-    def __getitem__(self, idx: int = 0):
+    def __init__(
+            self, 
+            task_set: Task = None, 
+            grid_size: Union[None, int, List[int]] = None, 
+          **kwargs
+        ):
+        super().__init__(task_set, grid_size, **kwargs)
+        self.ignore_background = kwargs.get('ignore_background', False)
+
+    def __getitem__(self, mode: str = 'train'):
 
         grids_raw = self.task_set.train if mode == 'train' else \
                     self.task_set.test
@@ -107,9 +116,14 @@ class ARCDatasetDepth(ARCDatasetNaive):
                                     ignore_background = self.ignore_background)
 
         # Reshape
-        grids_in = torch.swapaxes(grids_in, 1, 3)
-        grids_out = torch.swapaxes(grids_out, 2, 3)
+        def reshape(x):
+            x = torch.swapaxes(x, 1, 3)
+            x = torch.swapaxes(x, 2, 3)
+            return x
 
-        return grids_in, grids_out, grids_mask
+        grids_in = reshape(grids_in)
+        grids_out = reshape(grids_out)
+
+        return [grids_in, grids_mask], grids_out
 
 

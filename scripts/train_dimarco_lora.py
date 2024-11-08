@@ -18,7 +18,7 @@ from src.trainer.dimarco_lora import LoraTrainer as Trainer
 
 ## Configuration
 augmented = True
-categorical = False
+categorical = True
 padding_value = -1
 
 data_name = 'iarc' + ('_cat' if categorical else ('_aug' if augmented else ''))
