@@ -22,6 +22,20 @@
 - [ARC Competition 2024](https://www.kaggle.com/competitions/arc-prize-2024/data)
 - [ARCkit](https://github.com/mxbi/arckit/tree/main/arckit/data)
 
+
+#### Data **Insights** 
+
+- Most of the tasks are **fixed-sized** 
+<img class="center" alt="teaser" src="assets/insights - grid size - stats.png" width="75%" class="center"/>
+
+- Distribution of size-changes
+<img class="center" alt="teaser" src="assets/insights - grid expansion-extraction.png" width="75%" class="center"/>
+
+- Distribution of sizes
+<img class="center" alt="teaser" src="assets/insights - grid size in-out.png" width="75%" class="center"/>
+
+- Read [notebook](notebooks/Data Insights.ipynb) for further details
+
 --------------------------
 ## Getting started
 This code was tested with:
@@ -48,7 +62,9 @@ pipwin install cairocffi
 !pipwin install cairosvg
 ```
 
+--------------------------
 #### Download **Checkpoints**
+- [Base-Model](https://www.kaggle.com/datasets/mrriandmstique/dimarco-checkpoints)
 
 --------------------------
 ## User Guide
