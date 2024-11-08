@@ -34,7 +34,7 @@
 - Distribution of sizes
 <img class="center" alt="teaser" src="assets/insights - grid size in-out.png" width="75%" class="center"/>
 
-- Read [notebook](notebooks/Data Insights.ipynb) for further details
+- Read [notebook](https://github.com/HariWu1995/DiMARCo/blob/master/notebooks/Data%20Insights.ipynb) for further details
 
 --------------------------
 ## Getting started
