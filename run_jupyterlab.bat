@@ -1,7 +1,6 @@
 @echo off
 
-SET REPO_DIR="C:/Users/Mr. RIAH/Documents/GenAI/AI3R"
-SET EXT_DIR=%REPO_DIR%\extensions
+SET REPO_DIR="C:/Users/Mr. RIAH/Documents/Competitions/DiMARCo"
 
 SET CONDA="C:\ProgramData\miniconda3"
 CALL %CONDA%\Scripts\activate.bat %CONDA%
